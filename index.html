@@ -2,22 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SolarRide Dashboard – GEC Hassan</title>
 
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-  />
-
-  <!-- Font Awesome -->
-  <script
-    src="https://kit.fontawesome.com/a076d05399.js"
-    crossorigin="anonymous"
-  ></script>
-
-  <!-- Chart.js -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -26,54 +15,29 @@
       --card: #16213e;
       --text: #eaeaea;
       --primary: #0f3460;
-      --secondary: #53354a;
       --accent: #e94560;
       --shadow: rgba(0, 0, 0, 0.6);
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: "Roboto", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-    .container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 1rem;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 0;
-    }
-    header h1 {
-      font-size: 2rem;
-      color: var(--accent);
-    }
-    header h3 {
-      font-size: 1.2rem;
-    }
-    nav {
-      display: flex;
-      gap: 1rem;
-    }
-    nav button {
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Roboto", sans-serif; background: var(--bg); color: var(--text); }
+    .container { max-width: 1200px; margin: auto; padding: 1rem; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; }
+    header h1 { font-size: 2rem; color: var(--accent); }
+    header h3 { font-size: 1.2rem; }
+    nav { display: flex; gap: 0.5rem; align-items: center; }
+    nav select, nav button {
       background: var(--primary);
       border: none;
-      padding: 0.6rem 1.2rem;
+      padding: 0.5rem 1rem;
       border-radius: 6px;
       color: var(--text);
       cursor: pointer;
       transition: background 0.3s;
+      font-size: 0.9rem;
     }
-    nav button:hover {
-      background: var(--accent);
-    }
+    nav select { min-width: 140px; }
+    nav button:hover, nav select:hover { background: var(--accent); }
+    #status { color: var(--text); margin-left: 1rem; }
 
     .cards {
       display: grid;
@@ -88,13 +52,8 @@
       box-shadow: 0 4px 16px var(--shadow);
       text-align: center;
     }
-    .card-icon {
-      font-size: 2.5rem;
-      color: var(--accent);
-      margin-bottom: 0.5rem;
-    }
+    .card-icon { font-size: 2.5rem; color: var(--accent); margin-bottom: 0.5rem; }
 
-    /* Camera card styling */
     .camera-card {
       position: relative;
       z-index: 2;
@@ -103,40 +62,28 @@
     }
     #cameraVideo {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       object-fit: cover;
       border-radius: 8px;
       z-index: 5;
     }
 
-    .weather-card img {
-      width: 60px;
-      height: 60px;
-      margin-bottom: 0.5rem;
-    }
-
+    .weather-card img { width: 60px; height: 60px; margin-bottom: 0.5rem; }
     .chart-map {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      grid-template-columns: 1fr 1fr;
       gap: 1.5rem;
       margin-top: 1.5rem;
     }
-    .chart,
-    #map {
+    .chart, #map {
       background: var(--card);
       border-radius: 12px;
       box-shadow: 0 4px 16px var(--shadow);
       padding: 1rem;
       height: 350px;
     }
-    @media (max-width: 768px) {
-      .chart-map {
-        grid-template-columns: 1fr;
-      }
-    }
+    @media (max-width: 768px) { .chart-map { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -145,18 +92,19 @@
       <h1>SolarRide Dashboard</h1>
       <h3>GEC Hassan</h3>
       <nav>
+        <select id="cameraFacing">
+          <option value="user">Front Camera</option>
+          <option value="environment">Back Camera</option>
+        </select>
         <button id="cameraBtn">Enable Camera</button>
-        <button id="downloadBtn" style="display: none;">Download</button>
-        <span id="status" style="align-self: center;">Camera off</span>
+        <button id="downloadBtn" style="display:none;">Download</button>
+        <span id="status">Camera off</span>
       </nav>
     </header>
 
     <section class="cards">
       <div class="card weather-card">
-        <img
-          src="https://cdn-icons-png.flaticon.com/512/414/414825.png"
-          alt="Cloudy"
-        />
+        <img src="https://cdn-icons-png.flaticon.com/512/414/414825.png" alt="Cloudy" />
         <h2>Weather</h2>
         <p>Cloudy, 20°C</p>
       </div>
@@ -164,12 +112,7 @@
         <i class="fas fa-battery-three-quarters card-icon"></i>
         <h2>Battery</h2>
         <p id="batteryValue">--%</p>
-        <progress
-          id="batteryBar"
-          value="0"
-          max="100"
-          style="width:100%; margin-top:0.5rem;"
-        ></progress>
+        <progress id="batteryBar" value="0" max="100" style="width:100%; margin-top:0.5rem;"></progress>
       </div>
       <div class="card">
         <i class="fas fa-solar-panel card-icon"></i>
@@ -188,149 +131,84 @@
     </section>
 
     <section class="chart-map">
-      <div class="chart">
-        <canvas id="lineChart"></canvas>
-      </div>
-      <div class="chart">
-        <canvas id="pieChart"></canvas>
-      </div>
+      <div class="chart"><canvas id="lineChart"></canvas></div>
       <div id="map"></div>
     </section>
   </div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script>
-    // LINE CHART SETUP
     const ctx = document.getElementById("lineChart").getContext("2d");
     const lineChart = new Chart(ctx, {
       type: "line",
       data: {
         labels: [],
         datasets: [
-          {
-            label: "Battery (%)",
-            data: [],
-            borderColor: "#e94560",
-            fill: false,
-          },
-          {
-            label: "Solar Power (W)",
-            data: [],
-            borderColor: "#0f3460",
-            fill: false,
-          },
-          {
-            label: "Speed (km/h)",
-            data: [],
-            borderColor: "#53354a",
-            fill: false,
-          },
-        ],
+          { label: "Battery (%)", data: [], borderColor: "#e94560", fill: false },
+          { label: "Solar Power (W)", data: [], borderColor: "#0f3460", fill: false },
+          { label: "Speed (km/h)", data: [], borderColor: "#53354a", fill: false }
+        ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
           x: { title: { display: true, text: "Time" } },
-          y: { beginAtZero: true },
-        },
-      },
+          y: { beginAtZero: true }
+        }
+      }
     });
 
-    // PIE CHART SETUP
-    const pieCtx = document.getElementById("pieChart").getContext("2d");
-    const pieChart = new Chart(pieCtx, {
-      type: "pie",
-      data: {
-        labels: ["Battery (%)", "Solar Power (W)", "Speed (km/h)"],
-        datasets: [
-          {
-            data: [0, 0, 0],
-            backgroundColor: [
-              "rgba(233, 69, 96, 0.7)",
-              "rgba(15, 52, 96, 0.7)",
-              "rgba(83, 53, 74, 0.7)",
-            ],
-            hoverOffset: 10,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: "bottom" },
-          title: {
-            display: true,
-            text: "Current Metric Distribution",
-          },
-        },
-      },
-    });
-
-    // UPDATE FUNCTION FOR BOTH CHARTS
     function updateDashboard(batt, solar, spd) {
       document.getElementById("batteryValue").innerText = batt + "%";
       document.getElementById("batteryBar").value = batt;
       document.getElementById("solarValue").innerText = solar + " W";
       document.getElementById("speedValue").innerText = spd + " km/h";
-
       const t = new Date().toLocaleTimeString();
       lineChart.data.labels.push(t);
-      [batt, solar, spd].forEach((v, i) =>
-        lineChart.data.datasets[i].data.push(v)
-      );
+      [batt, solar, spd].forEach((v,i) => lineChart.data.datasets[i].data.push(v));
       if (lineChart.data.labels.length > 20) {
         lineChart.data.labels.shift();
-        lineChart.data.datasets.forEach((ds) => ds.data.shift());
+        lineChart.data.datasets.forEach(ds => ds.data.shift());
       }
       lineChart.update();
-
-      pieChart.data.datasets[0].data = [batt, solar, spd];
-      pieChart.update();
     }
 
-    // MAP INIT
     function initMap() {
       const map = L.map("map").setView([13.0033, 76.1026], 15);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors",
+        attribution: "© OpenStreetMap contributors"
       }).addTo(map);
-      L.marker([13.0033, 76.1026])
-        .addTo(map)
-        .bindPopup("GEC Hassan")
-        .openPopup();
+      L.marker([13.0033, 76.1026]).addTo(map).bindPopup("GEC Hassan").openPopup();
     }
 
-    // CAMERA / RECORDING LOGIC
     const cameraBtn = document.getElementById("cameraBtn");
     const downloadBtn = document.getElementById("downloadBtn");
     const statusEl = document.getElementById("status");
     const videoEl = document.getElementById("cameraVideo");
-    let stream = null,
-      recorder = null,
-      chunks = [];
+    const facingSelect = document.getElementById("cameraFacing");
+    let stream = null, recorder = null, chunks = [];
 
     cameraBtn.onclick = async () => {
       if (!stream) {
         try {
           stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: true,
+            video: { facingMode: { exact: facingSelect.value } },
+            audio: true
           });
           videoEl.srcObject = stream;
           statusEl.innerText = "Recording";
           cameraBtn.innerText = "Stop & Preview";
           chunks = [];
           recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
-          recorder.ondataavailable = (e) => chunks.push(e.data);
+          recorder.ondataavailable = e => chunks.push(e.data);
           recorder.start();
         } catch {
-          statusEl.innerText = "Access denied";
+          statusEl.innerText = "Cannot access camera";
         }
       } else {
         recorder.stop();
-        stream.getTracks().forEach((t) => t.stop());
+        stream.getTracks().forEach(t => t.stop());
         stream = null;
         statusEl.innerText = "Preview ready";
         cameraBtn.style.display = "none";
@@ -353,11 +231,7 @@
       videoEl.srcObject = null;
     };
 
-    window.onload = () => {
-      initMap();
-      updateDashboard(78, 135, 12.5);
-      // You can call updateDashboard periodically or based on real data
-    };
+    window.onload = () => { initMap(); updateDashboard(78, 135, 12.5); };
   </script>
 </body>
 </html>
